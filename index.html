@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1D9E75">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Consultorio">
+  <title>Consultorio Dental</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+  <link rel="icon" href="icons/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+<script>
+  (function () {
+    var tema = localStorage.getItem('consultorio-tema');
+    document.body.classList.toggle('dark-theme', tema === 'dark');
+  }());
+</script>
+<div class="app-shell">
+<div id="app-toast" class="toast" role="status" aria-live="polite"></div>
+<div id="auth-screen" class="auth-screen">
+  <div class="auth-card">
+    <div class="auth-title">🔐 Acceso al consultorio</div>
+    <div class="auth-subtitle">Ingresá tus credenciales o creá una cuenta para comenzar</div>
+    <div class="auth-toggle">
+      <button class="auth-toggle-btn active" id="tab-login" type="button" onclick="showAuthTab('login')">Iniciar sesión</button>
+      <button class="auth-toggle-btn" id="tab-register" type="button" onclick="showAuthTab('register')">Crear cuenta</button>
+    </div>
+    <form id="login-form" onsubmit="event.preventDefault(); login();">
+      <div class="fg">
+        <label for="login-user">Email</label>
+        <input id="login-user" type="email" autocomplete="email" placeholder="tuemail@ejemplo.com" required>
+      </div>
+      <div class="fg">
+        <label for="login-pass">Contraseña</label>
+        <div class="password-wrap"><input id="login-pass" type="password" autocomplete="current-password" placeholder="••••••••" required><button class="password-toggle" type="button" onclick="togglePassword('login-pass', this)" aria-label="Mostrar contraseña" title="Mostrar contraseña">◉</button></div>
+      </div>
+      <div id="login-error" class="login-error"></div>
+      <button class="btn btn-green btn-full" type="submit">Ingresar</button>
+      <button class="btn btn-full" type="button" onclick="showAuthTab('forgot')">¿Olvidaste tu contraseña?</button>
+    </form>
+    <form id="register-form" class="hidden-form" onsubmit="event.preventDefault(); register();">
+      <div class="fg">
+        <label for="register-name">Nombre completo</label>
+        <input id="register-name" type="text" autocomplete="name" placeholder="Ej: Nombre Profesional" required>
+      </div>
+      <div class="fg">
+        <label for="register-user">Email</label>
+        <input id="register-user" type="email" autocomplete="email" placeholder="tuemail@ejemplo.com" required>
+      </div>
+      <div class="fg">
+        <label for="register-pass">Contraseña</label>
+        <div class="password-wrap"><input id="register-pass" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" required><button class="password-toggle" type="button" onclick="togglePassword('register-pass', this)" aria-label="Mostrar contraseña" title="Mostrar contraseña">◉</button></div>
+      </div>
+      <div id="register-error" class="login-error"></div>
+      <button class="btn btn-green btn-full" type="submit">Crear cuenta</button>
+    </form>
+  </div>
+  <div id="forgot-card" class="auth-card hidden-form">
+    <div class="auth-title">📧 Recuperar contraseña</div>
+    <div class="auth-subtitle">Ingresá el email de tu cuenta y te enviaremos un enlace para crear una nueva contraseña</div>
+    <form id="forgot-form" onsubmit="event.preventDefault(); sendPasswordReset();">
+      <div class="fg">
+        <label for="forgot-user">Email de tu cuenta</label>
+        <input id="forgot-user" type="email" autocomplete="email" placeholder="tuemail@ejemplo.com" required>
+      </div>
+      <div id="forgot-error" class="login-error"></div>
+      <button class="btn btn-green btn-full" type="submit">Enviar enlace</button>
+      <button class="btn btn-full" type="button" onclick="showAuthTab('login')">Volver a iniciar sesión</button>
+    </form>
+  </div>
+  <div id="reset-card" class="auth-card hidden-form">
+    <div class="auth-title">🔑 Nueva contraseña</div>
+    <div class="auth-subtitle">Elegí una contraseña nueva para volver a ingresar al consultorio</div>
+    <form id="reset-form" onsubmit="event.preventDefault(); updatePassword();">
+      <div class="fg">
+        <label for="reset-pass">Nueva contraseña</label>
+        <div class="password-wrap"><input id="reset-pass" type="password" autocomplete="new-password" placeholder="Mínimo 6 caracteres" minlength="6" required><button class="password-toggle" type="button" onclick="togglePassword('reset-pass', this)" aria-label="Mostrar contraseña" title="Mostrar contraseña">◉</button></div>
+      </div>
+      <div class="fg">
+        <label for="reset-pass-confirm">Repetir contraseña</label>
+        <div class="password-wrap"><input id="reset-pass-confirm" type="password" autocomplete="new-password" placeholder="Repetí la contraseña" minlength="6" required><button class="password-toggle" type="button" onclick="togglePassword('reset-pass-confirm', this)" aria-label="Mostrar contraseña" title="Mostrar contraseña">◉</button></div>
+      </div>
+      <div id="reset-error" class="login-error"></div>
+      <button class="btn btn-green btn-full" type="submit">Guardar nueva contraseña</button>
+    </form>
+  </div>
+</div>
+<div id="app-shell" style="display:none">
+<div class="app-layout">
+  <div class="sidebar-backdrop" id="sidebar-backdrop" onclick="cerrarMenu()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-title">Menú</div>
+    <nav class="nav">
+      <button class="nav-btn active" onclick="goTab('agenda')"><span class="nav-icon">📅</span>Agenda</button>
+      <button class="nav-btn" onclick="goTab('calendario')"><span class="nav-icon">🗓</span>Calendario</button>
+      <button class="nav-btn" onclick="goTab('pacientes')"><span class="nav-icon">👤</span>Pacientes</button>
+      <button class="nav-btn" onclick="goTab('dashboard')"><span class="nav-icon">📊</span>Estadísticas</button>
+      <button class="nav-btn" onclick="goTab('alertas')"><span class="nav-icon">🔔</span>Alertas</button>
+    </nav>
+  </aside>
+<div class="app-main">
+<div class="hdr">
+  <div class="hdr-left">
+    <div class="hdr-title">
+      <button class="menu-btn" id="menu-btn" onclick="toggleMenu()" aria-label="Abrir menú" aria-expanded="false">☰</button>
+      🦷 Consultorio Dental
+    </div>
+    <div class="hdr-meta">
+      <span class="hdr-user" id="hdr-user"></span>
+      <span class="hdr-dot">•</span>
+      <span class="hdr-sub" id="hdr-fecha"></span>
+    </div>
+  </div>
+  <div class="hdr-actions">
+    <button class="hdr-btn hdr-btn-secondary theme-toggle" id="theme-toggle" type="button" onclick="toggleTheme()" aria-label="Cambiar tema" title="Cambiar tema">☾</button>
+    <button class="hdr-btn" id="hdr-btn" onclick="abrirModal('turno')">+ Turno</button>
+    <button class="hdr-btn hdr-btn-secondary" id="hdr-logout" onclick="logout()">Salir</button>
+  </div>
+</div>
+
+<div id="v-agenda" class="view active">
+  <div id="install-banner" class="install-banner">
+    <span style="font-size:22px">📲</span>
+    <div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--green-dark)">Instalá la app</div><div style="font-size:12px;color:var(--text2)">Tocá para agregar al inicio</div></div>
+    <button id="btn-install" class="btn btn-green" style="font-size:12px;padding:6px 12px">Instalar</button>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-hoy">0</div><div class="stat-l">Turnos hoy</div></div>
+    <div class="stat"><div class="stat-n" id="s-sem">0</div><div class="stat-l">Esta semana</div></div>
+  </div>
+  <div id="ausencias-alerta"></div>
+  <div class="sec">Hoy</div><div id="lista-hoy"></div>
+  <div class="sec">Próximos 7 días</div><div id="lista-prox"></div>
+</div>
+
+<div id="v-calendario" class="view">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px">
+    <button class="btn" onclick="calNav(-1)" style="font-size:18px;padding:6px 14px">‹</button>
+    <span style="font-size:16px;font-weight:600" id="cal-tit"></span>
+    <button class="btn" onclick="calNav(1)" style="font-size:18px;padding:6px 14px">›</button>
+  </div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px" id="cal-labels"></div>
+  <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:2px" id="cal-grid"></div>
+  <div id="cal-detalle" style="margin-top:14px"></div>
+</div>
+
+<div id="v-pacientes" class="view">
+  <div class="search-wrap"><span class="search-icon">🔍</span><input id="buscar" type="text" placeholder="Nombre o teléfono..." oninput="renderPacientes()"></div>
+  <div id="lista-pacientes"></div>
+</div>
+
+<div id="v-dashboard" class="view">
+  <div class="sec" style="margin-top:0">Este mes</div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="d-turnos">0</div><div class="stat-l">Turnos</div></div>
+    <div class="stat"><div class="stat-n" id="d-ingresos" style="font-size:18px">$0</div><div class="stat-l">Ingresos</div></div>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="d-cancelados">0</div><div class="stat-l">Cancelados</div></div>
+    <div class="stat"><div class="stat-n" id="d-ausentes">0</div><div class="stat-l">Ausencias</div></div>
+  </div>
+  <div class="sec">Turnos últimos 6 meses</div>
+  <div class="card" style="padding:16px"><div class="chart-bar-wrap" id="chart-turnos"></div></div>
+  <div class="sec">Ingresos últimos 6 meses</div>
+  <div class="card" style="padding:16px"><div class="chart-bar-wrap" id="chart-ingresos"></div></div>
+  <div class="sec">Tratamientos más frecuentes</div><div id="d-tratamientos"></div>
+  <div class="sec">Deudas pendientes</div><div id="d-deudas"></div>
+</div>
+
+<div id="v-alertas" class="view">
+  <div class="sec" style="margin-top:0">Turnos de hoy</div><div id="alerta-hoy"></div>
+  <div class="sec">Confirmaciones pendientes (en 2 días)</div><div id="alerta-confirm"></div>
+  <div class="sec">Pacientes con ausencias reiteradas</div><div id="alerta-ausencias"></div>
+</div>
+</div><!-- /app-main -->
+</div><!-- /app-layout -->
+
+<!-- MODAL TURNO -->
+<div class="modal-bg" id="m-turno"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-scroll">
+  <div class="modal-title">Nuevo turno</div>
+  <div class="fg"><label>Paciente *</label><select id="f-pac" onchange="onPacChange()"><option value="">— Seleccionar —</option></select></div>
+  <div id="turno-pac-existente">
+    <div class="fg"><label>Teléfono WhatsApp *</label><input id="f-tel" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="2615551234"></div>
+  </div>
+  <div id="turno-pac-nuevo" style="display:none">
+    <div class="card" style="background:var(--green-light);border-color:var(--green-mid);padding:10px 12px;margin-bottom:12px">
+      <div style="font-size:12px;color:var(--green-dark);font-weight:500">✨ Se creará un paciente nuevo con estos datos</div>
+    </div>
+    <div class="fg"><label>Nombre completo *</label><input id="tn-nombre" type="text" placeholder="Ej: María González"></div>
+    <div class="fg"><label>DNI *</label><input id="tn-dni" type="text" inputmode="numeric" maxlength="8" placeholder="Ej: 30123456"></div>
+    <div class="fg"><label>Teléfono WhatsApp *</label><input id="tn-tel" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="2615551234"></div>
+    <div class="fg"><label>Fecha de nacimiento</label><input id="tn-nac" type="date" min="1900-01-01" max="2026-09-07"></div>
+    <div class="fg"><label>Obra Social</label><input id="tn-os" type="text" placeholder="Ej: OSDE, PAMI, Particular..."></div>
+    <div class="fg"><label>Observaciones (alergias, medicación...)</label><textarea id="tn-obs" placeholder="Ej: Alergia a penicilina..."></textarea></div>
+  </div>
+  <div class="fg-row">
+    <div class="fg"><label>Fecha *</label><input id="f-fecha" type="date"></div>
+    <div class="fg"><label>Hora *</label><input id="f-hora" type="time"></div>
+  </div>
+  <div class="fg"><label>Motivo</label><input id="f-motivo" type="text" placeholder="Limpieza, extracción..."></div>
+  <div class="fg"><label>Turno recurrente</label>
+    <select id="f-recurrente"><option value="">No</option><option value="1m">Cada 1 mes</option><option value="3m">Cada 3 meses</option><option value="6m">Cada 6 meses</option><option value="1a">Cada 1 año</option></select>
+  </div>
+  <div class="form-hint">Completá paciente, fecha y hora para agendar el turno.</div>
+  <button class="btn btn-green btn-full" id="btn-guardar-turno" onclick="guardarTurno()">Guardar turno</button>
+  <button class="btn btn-full" style="background:var(--bg)" onclick="cerrarModal('m-turno')">Cancelar</button>
+  </div>
+</div></div>
+
+
+<!-- MODAL PACIENTE  -->
+<div class="modal-bg" id="m-paciente"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-scroll">
+  <div class="modal-title">Nuevo paciente</div>
+  <div class="fg"><label>Nombre completo *</label><input id="np-nombre" type="text" placeholder="Ej: María González"></div>
+  <div class="fg"><label>DNI *</label><input id="np-dni" type="text" inputmode="numeric" maxlength="8" placeholder="Ej: 30123456"></div>
+  <div class="fg"><label>Teléfono WhatsApp *</label><input id="np-tel" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="2615551234"></div>
+  <div class="fg"><label>Fecha de nacimiento</label><input id="np-nac" type="date" min="1900-01-01" max="2026-09-07"></div>
+  <div class="fg"><label>Obra Social</label><input id="np-os" type="text" placeholder="Ej: OSDE, PAMI, Particular..."></div>
+  <div class="fg"><label>Observaciones (alergias, medicación...)</label><textarea id="np-obs" placeholder="Ej: Alergia a penicilina..."></textarea></div>
+  <div class="form-hint">El DNI debe tener entre 7 y 8 dígitos.</div>
+  <button class="btn btn-green btn-full" id="btn-guardar-paciente" onclick="guardarPaciente()">Guardar paciente</button>
+  <button class="btn btn-full" style="background:var(--bg)" onclick="cerrarModal('m-paciente')">Cancelar</button>
+  </div>
+</div></div>
+
+<!-- MODAL DETALLE PACIENTE -->
+<div class="modal-bg" id="m-detalle"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-scroll">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px">
+    <div class="avatar" id="dp-avatar" style="width:52px;height:52px;font-size:16px"></div>
+    <div style="flex:1;min-width:0"><div style="font-size:16px;font-weight:600;overflow-wrap:anywhere" id="dp-nombre"></div><div style="font-size:13px;color:var(--text2)" id="dp-tel"></div></div>
+    <div id="dp-ausencias-badge"></div>
+  </div>
+  <div id="dp-obs-wrap"></div>
+  <div class="modal-tabs">
+    <button class="modal-tab active" onclick="switchDetTab('datos')">👤 Datos</button>
+    <button class="modal-tab" onclick="switchDetTab('odonto')">🦷 Odonto</button>
+    <button class="modal-tab" onclick="switchDetTab('trats')">📋 Trats</button>
+    <button class="modal-tab" onclick="switchDetTab('pagos')">💰 Pagos</button>
+    <button class="modal-tab" onclick="switchDetTab('turnos')">📅 Turnos</button>
+  </div>
+  <div id="det-datos">
+  </div>
+  <div id="det-odonto" style="display:none">
+    <div class="odonto-wrap">
+      <div class="odonto-legend">
+        <div class="odonto-legend-item"><div class="odonto-legend-dot" style="background:#FEF3C7;border:1px solid #F59E0B"></div>Caries</div>
+        <div class="odonto-legend-item"><div class="odonto-legend-dot" style="background:var(--green-light);border:1px solid var(--green)"></div>Tratado</div>
+        <div class="odonto-legend-item"><div class="odonto-legend-dot" style="background:var(--red-light);border:1px solid var(--red)"></div>Extrac.</div>
+        <div class="odonto-legend-item"><div class="odonto-legend-dot" style="background:var(--purple-light);border:1px solid var(--purple)"></div>Corona</div>
+        <div class="odonto-legend-item"><div class="odonto-legend-dot" style="background:#F3F4F6;border:1px solid #9CA3AF"></div>Ausente</div>
+      </div>
+      <div class="odonto-row" id="od-sup-der"></div>
+      <div class="odonto-divisor">── Superior ──</div>
+      <div class="odonto-row" id="od-sup-izq"></div>
+      <div style="height:8px"></div>
+      <div class="odonto-row" id="od-inf-izq"></div>
+      <div class="odonto-divisor">── Inferior ──</div>
+      <div class="odonto-row" id="od-inf-der"></div>
+      <div class="sec" style="margin-top:12px">Marcar diente como:</div>
+      <div class="odonto-selector">
+        <div class="odonto-opt opt-sano active-opt" onclick="setEstado('sano')">⚪ Sano</div>
+        <div class="odonto-opt opt-caries" onclick="setEstado('caries')">🟡 Caries</div>
+        <div class="odonto-opt opt-tratado" onclick="setEstado('tratado')">✅ Tratado</div>
+        <div class="odonto-opt opt-extraccion" onclick="setEstado('extraccion')">🔴 Extrac.</div>
+        <div class="odonto-opt opt-corona" onclick="setEstado('corona')">👑 Corona</div>
+        <div class="odonto-opt opt-ausente" onclick="setEstado('ausente')">❌ Ausente</div>
+      </div>
+      <div style="font-size:11px;color:var(--text3);margin-top:8px;text-align:center">Seleccioná un estado y tocá el diente</div>
+    </div>
+  </div>
+  <div id="det-trats" style="display:none">
+    <div id="dp-trats"></div>
+    <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-top:4px">
+      <div class="fg-row" style="margin-bottom:8px">
+        <div class="fg" style="margin:0"><input id="nt-nombre" type="text" placeholder="Tratamiento" style="font-size:14px"></div>
+        <div class="fg" style="margin:0"><input id="nt-fecha" type="date" style="font-size:14px"></div>
+      </div>
+      <textarea id="nt-nota" placeholder="Notas clínicas..." style="width:100%;padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text);resize:vertical;min-height:56px;font-family:'DM Sans',sans-serif;margin-bottom:8px"></textarea>
+      <button class="btn btn-green" style="width:100%;padding:9px;font-size:13px" onclick="agregarTrat()">+ Agregar tratamiento</button>
+    </div>
+  </div>
+  <div id="det-pagos" style="display:none">
+    <div id="dp-deuda"></div><div id="dp-pagos"></div>
+    <div style="background:var(--bg);border-radius:var(--radius);padding:12px;margin-top:4px">
+      <div class="fg-row" style="margin-bottom:8px">
+        <input id="np-monto" type="text" inputmode="numeric" autocomplete="off" placeholder="Monto $" aria-label="Monto" style="padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif">
+        <select id="np-tipo" style="padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif">
+          <option value="cobro">✅ Cobro</option><option value="deuda">⚠️ Deuda</option>
+        </select>
+      </div>
+      <div class="fg-row" style="margin-bottom:8px">
+        <input id="np-desc" type="text" placeholder="Descripción" style="padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif">
+        <select id="np-metodo" style="padding:9px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);font-size:14px;background:var(--card);color:var(--text);font-family:'DM Sans',sans-serif">
+          <option value="efectivo">💵 Efectivo</option><option value="transferencia">📲 Transfer.</option>
+          <option value="obra_social">🏥 Obra Social</option><option value="tarjeta">💳 Tarjeta</option>
+        </select>
+      </div>
+      <button class="btn btn-green" style="width:100%;padding:9px;font-size:13px" onclick="agregarPago()">+ Registrar pago</button>
+    </div>
+  </div>
+  <div id="det-turnos" style="display:none"><div id="dp-turnos-pac"></div></div>
+  <button class="btn btn-full" style="background:var(--bg);margin-top:12px" onclick="cerrarModal('m-detalle')">Cerrar</button>
+  </div>
+</div></div>
+
+<!-- MODAL CONFIG -->
+<div class="modal-bg" id="m-horarios"><div class="modal">
+  <div class="modal-handle"></div>
+  <div class="modal-scroll">
+  <div class="modal-title">⚙️ Configuración del consultorio</div>
+  <div class="sec" style="margin-top:0">Nombre de la doctora</div>
+  <div class="fg"><input id="cfg-dra" type="text" placeholder="Ej: PERALTA PILAR"></div>
+  <div class="sec">Días de atención</div>
+  <div class="horario-grid" id="cfg-dias"></div>
+  <div class="sec">Horario de atención</div>
+  <div class="fg-row">
+    <div class="fg"><label>Desde</label><input id="cfg-desde" type="time"></div>
+    <div class="fg"><label>Hasta</label><input id="cfg-hasta" type="time"></div>
+  </div>
+  <div class="sec">Días bloqueados</div>
+  <div id="cfg-bloqueados-lista" style="margin-bottom:8px"></div>
+  <div class="fg-row">
+    <div class="fg"><input id="cfg-bloqueo-fecha" type="date"></div>
+    <div class="fg"><input id="cfg-bloqueo-motivo" type="text" placeholder="Motivo (ej: Feriado)"></div>
+  </div>
+  <button class="btn btn-green" style="width:100%;padding:9px;font-size:13px;margin-bottom:8px" onclick="agregarBloqueo()">+ Bloquear día</button>
+  <button class="btn btn-green btn-full" id="btn-guardar-config" onclick="guardarConfig()">Guardar configuración</button>
+  <button class="btn btn-full" style="background:var(--bg)" onclick="cerrarModal('m-horarios')">Cancelar</button>
+  </div>
+</div></div>
+
+<!-- Conexión a Supabase: debe ir antes que cualquier script que use la base -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="js/supabaseClient.js"></script>
+
+<!-- Orden de carga crítico: data.js y utils.js primero, main.js al final -->
+<script src="js/data.js"></script>
+<script src="js/utils.js"></script>
+<script src="js/appState.js"></script>
+<script src="js/config.js"></script>
+<script src="js/agenda.js"></script>
+<script src="js/calendario.js"></script>
+<script src="js/turnos.js"></script>
+<script src="js/pacientes.js"></script>
+<script src="js/detallePaciente.js"></script>
+<script src="js/odontograma.js"></script>
+<script src="js/dashboard.js"></script>
+<script src="js/alertas.js"></script>
+<script src="js/pwa.js"></script>
+<script src="js/modales.js"></script>
+<script src="js/main.js"></script>
+</div>
+</div>
+<script src="js/login.js"></script>
+</body>
+</html>
