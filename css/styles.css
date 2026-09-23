@@ -348,9 +348,17 @@
   }
 
   .card.turno-confirmado {
-    background: linear-gradient(135deg, var(--green-light), #F0FBF7);
-    border-color: var(--green-mid);
+    background: linear-gradient(135deg, rgba(29, 158, 117, 0.18), rgba(29, 158, 117, 0.08));
+    border-color: rgba(29, 158, 117, 0.45);
     box-shadow: inset 0 0 0 1px rgba(29, 158, 117, 0.12);
+    color: var(--text);
+  }
+
+  body.dark-theme .card.turno-confirmado {
+    background: linear-gradient(135deg, rgba(52, 211, 153, 0.18), rgba(16, 185, 129, 0.08));
+    border-color: rgba(110, 231, 183, 0.58);
+    box-shadow: inset 0 0 0 1px rgba(110, 231, 183, 0.18);
+    color: var(--text);
   }
   
   .card-row {

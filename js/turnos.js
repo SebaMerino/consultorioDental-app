@@ -20,10 +20,24 @@ function actualizarSelectPac() {
       document.getElementById('turno-pac-existente').style.display = 'none';
       document.getElementById('turno-pac-nuevo').style.display = 'block';
       document.getElementById('f-tel').value = '';
+      document.getElementById('tn-nombre').value = '';
+      document.getElementById('tn-dni').value = '';
+      document.getElementById('tn-tel').value = '';
+      document.getElementById('tn-nac').value = '';
+      document.getElementById('tn-os').value = '';
+      document.getElementById('tn-obs').value = '';
+      limpiarErroEnFormulario(['tn-nombre', 'tn-dni', 'tn-tel', 'tn-nac', 'tn-os', 'tn-obs']);
     } else {
       document.getElementById('turno-pac-existente').style.display = 'block';
       document.getElementById('turno-pac-nuevo').style.display = 'none';
+      document.getElementById('tn-nombre').value = '';
+      document.getElementById('tn-dni').value = '';
+      document.getElementById('tn-tel').value = '';
+      document.getElementById('tn-nac').value = '';
+      document.getElementById('tn-os').value = '';
+      document.getElementById('tn-obs').value = '';
       autoTel();
+      limpiarErroEnFormulario(['tn-nombre', 'tn-dni', 'tn-tel', 'tn-nac', 'tn-os', 'tn-obs']);
     }
   }
   
@@ -31,7 +45,12 @@ function actualizarSelectPac() {
 
   function resetTurnoForm() {
     turnoEditId = null;
-    document.getElementById('f-pac').value = '';
+    const pacSelect = document.getElementById('f-pac');
+    if (pacSelect) {
+      pacSelect.innerHTML = '<option value="">— Seleccionar —</option><option value="nuevo">➕ Nuevo paciente</option>' +
+        pacientes.map(p => '<option value="' + p.id + '">' + escapeHtml(p.nombre) + '</option>').join('');
+      pacSelect.value = '';
+    }
     document.getElementById('f-tel').value = '';
     document.getElementById('f-motivo').value = '';
     document.getElementById('f-recurrente').value = '';
