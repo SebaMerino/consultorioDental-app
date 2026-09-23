@@ -3,7 +3,7 @@
 // ==========================================
 
 function abrirModal(t) {
-    if (t === 'turno') {
+    if (t === 'turno' && (typeof turnoEditId === 'undefined' || turnoEditId === null)) {
       resetTurnoForm();
     }
 

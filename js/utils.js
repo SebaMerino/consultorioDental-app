@@ -169,3 +169,24 @@ function validarDni(valor) {
   const v = normalizarDni(valor);
   return v.length >= 7 && v.length <= 8;
 }
+
+function textoRecordatorioTurno(t, paciente) {
+  const nombre = paciente ? paciente.nombre : 'Paciente';
+  const fechaLinda = parseDate(t.fecha).toLocaleDateString('es-AR', {
+    weekday: 'long',
+    day: 'numeric',
+    month: 'long',
+    year: 'numeric'
+  }).replace(', ', ' ');
+
+  return '¡Hola, ' + nombre + '! Te recordamos tu turno con ' + nombreProfesionalActual() + ', el ' + fechaLinda + ' a las ' + t.hora + ' hs. Por favor, respondé SI para confirmar tu turno o NO para cancelarlo. ¡Gracias!';
+}
+
+function linkWhatsAppTurno(t, tipo = 'recordatorio') {
+  const paciente = pacientes.find(p => p.id === t.pacId);
+  const texto = tipo === 'confirmar'
+    ? '¡Hola, ' + (paciente ? paciente.nombre : 'Paciente') + '! Confirmá tu turno con ' + nombreProfesionalActual() + ' para el ' + parseDate(t.fecha).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(', ', ' ') + ' a las ' + t.hora + ' hs. Respondé SI para confirmar. ¡Gracias!'
+    : textoRecordatorioTurno(t, paciente);
+
+  return 'https://wa.me/' + (t.tel || '5490000000000') + '?text=' + encodeURIComponent(texto);
+}

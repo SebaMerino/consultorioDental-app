@@ -120,24 +120,24 @@ function cardTurno(t, esHoy) {
     const cancelado = t.estado === 'cancelado';
     const ausente = t.estado === 'ausente';
     const finalizado = cancelado || ausente;
+    const confirmado = !!t.confirmado && t.estado === 'activo';
+    const linkRecordatorio = linkWhatsAppTurno(t, 'recordatorio');
+    const linkConfirmar = linkWhatsAppTurno(t, 'confirmar');
  
     const badge = cancelado ? '<span class="badge b-cancel">Cancelado</span>' :
       ausente ? '<span class="badge b-red">No asistió</span>' :
       t.confirmado ? '<span class="badge b-ok">✓ Confirmado</span>' :
       (needsConfirm ? '<span class="badge b-pend">⚠ Confirmar</span>' : (esHoy ? '<span class="badge b-info">Hoy</span>' : ''));
     const fechaLine = esHoy ? '' : ' · <span style="color:var(--text2)">' + parseDate(t.fecha).toLocaleDateString('es-AR', { weekday: 'short', day: 'numeric', month: 'short' }) + '</span>';
-    const fechaLinda = parseDate(t.fecha).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
- 
-    const msg = encodeURIComponent('\u00A1Hola, ' + (pac ? pac.nombre : 'Paciente') + '! Te recordamos tu turno con ' + nombreProfesionalActual() + ', el ' + fechaLinda.replace(', ', ' ') + ' a las ' + t.hora + ' hs. Por favor, respond\u00E9 SI para confirmar tu turno o NO para cancelarlo. \u00A1Gracias!');
     const recTag = t.recurrente ? '<span class="badge b-purple" style="font-size:10px">🔁 ' + t.recurrente + '</span> ' : '';
  
-    return '<div class="card' + (finalizado ? ' card-cancelado' : '') + '"><div class="card-row" style="margin-bottom:6px"><span style="font-size:14px;font-weight:600">' + escapeHtml(t.hora) + 'hs' + fechaLine + '</span><div style="display:flex;gap:4px;align-items:center">' + recTag + badge + '</div></div><div style="font-size:15px;font-weight:500">' + nombre + '</div><div style="font-size:13px;color:var(--text2);margin-bottom:2px">' + escapeHtml(t.motivo || 'Sin motivo') + '</div>' +
+    return '<div class="card' + (finalizado ? ' card-cancelado' : '') + (confirmado ? ' turno-confirmado' : '') + '"><div class="card-row" style="margin-bottom:6px"><span style="font-size:14px;font-weight:600">' + escapeHtml(t.hora) + 'hs' + fechaLine + '</span><div style="display:flex;gap:4px;align-items:center">' + recTag + badge + '</div></div><div style="font-size:15px;font-weight:500">' + escapeHtml(nombre) + '</div><div style="font-size:13px;color:var(--text2);margin-bottom:2px">' + escapeHtml(t.motivo || 'Sin motivo') + '</div>' +
       (!finalizado ?
-        '<div class="turno-actions"><a class="btn-wa' + (needsConfirm ? ' btn-wa-orange' : '') + '" href="https://wa.me/' + t.tel + '?text=' + msg + '" target="_blank">' + waIcon + ' Recordatorio</a>' + (!t.confirmado ? '<button class="btn" style="font-size:12px;padding:6px 10px;background:var(--green-light);color:var(--green-dark);border-color:var(--green)" onclick="marcarConfirmado(' + t.id + ')">✓ Confirmó</button>' : '') + ' <button class="btn" style="font-size:12px;padding:6px 10px" onclick="marcarCancelado(' + t.id + ')">✕ Canceló</button>' + ' <button class="btn btn-red" style="font-size:12px;padding:6px 10px" onclick="marcarAusente(' + t.id + ')">🚫 No asistió</button>' + (pac ? '<button class="btn" style="font-size:12px;padding:6px 10px" onclick="abrirDetalle(' + pac.id + ')">📋</button>' : '') + '</div>' :
+        '<div class="turno-actions"><a class="btn-wa' + (needsConfirm ? ' btn-wa-orange' : '') + '" href="' + linkRecordatorio + '" target="_blank">' + waIcon + ' Recordatorio</a>' + (needsConfirm ? '<a class="btn-wa btn-wa-orange" href="' + linkConfirmar + '" target="_blank">✅ Confirmar</a>' : '') + (!t.confirmado ? '<button class="btn" style="font-size:12px;padding:6px 10px;background:var(--green-light);color:var(--green-dark);border-color:var(--green)" onclick="marcarConfirmado(' + t.id + ')">✓ Confirmó</button>' : '') + ' <button class="btn" style="font-size:12px;padding:6px 10px" onclick="marcarCancelado(' + t.id + ')">✕ Canceló</button>' + ' <button class="btn btn-red" style="font-size:12px;padding:6px 10px" onclick="marcarAusente(' + t.id + ')">🚫 No asistió</button>' + ' <button class="btn" style="font-size:12px;padding:6px 10px" onclick="reprogramarTurno(' + t.id + ')">📝 Reprogramar</button>' + (pac ? '<button class="btn" style="font-size:12px;padding:6px 10px" onclick="abrirDetalle(' + pac.id + ')">📋</button>' : '') + '</div>' :
         '<div class="turno-actions"><button class="btn btn-del" style="font-size:12px;padding:6px 10px" onclick="eliminarTurno(' + t.id + ')">Eliminar</button></div>'
       ) + '</div>';
   }
- 
+
   async function marcarConfirmado(id) {
     const t = turnos.find(x => x.id === id);
     if (t) {

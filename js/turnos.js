@@ -27,7 +27,10 @@ function actualizarSelectPac() {
     }
   }
   
+  let turnoEditId = null;
+
   function resetTurnoForm() {
+    turnoEditId = null;
     document.getElementById('f-pac').value = '';
     document.getElementById('f-tel').value = '';
     document.getElementById('f-motivo').value = '';
@@ -41,10 +44,30 @@ function actualizarSelectPac() {
     document.getElementById('turno-pac-existente').style.display = 'block';
     document.getElementById('turno-pac-nuevo').style.display = 'none';
     limpiarErroEnFormulario(['f-pac', 'f-tel', 'f-fecha', 'f-hora', 'f-motivo', 'tn-nombre', 'tn-dni', 'tn-tel', 'tn-nac', 'tn-os', 'tn-obs']);
+    const btn = document.getElementById('btn-guardar-turno');
+    if (btn) btn.textContent = 'Guardar turno';
     
     const fi = document.getElementById('f-fecha');
     fi.value = hoyStr;
     fi.min = hoyStr;
+  }
+
+  function reprogramarTurno(id) {
+    const t = turnos.find(x => x.id === id);
+    if (!t) return;
+
+    turnoEditId = id;
+    actualizarSelectPac();
+    document.getElementById('f-pac').value = String(t.pacId);
+    document.getElementById('f-tel').value = t.tel || '';
+    document.getElementById('f-fecha').value = t.fecha;
+    document.getElementById('f-hora').value = t.hora;
+    document.getElementById('f-motivo').value = t.motivo || '';
+    document.getElementById('f-recurrente').value = t.recurrente || '';
+    document.getElementById('turno-pac-nuevo').style.display = 'none';
+    document.getElementById('turno-pac-existente').style.display = 'block';
+    document.getElementById('btn-guardar-turno').textContent = 'Guardar cambios';
+    abrirModal('turno');
   }
   
   async function guardarTurno() {
@@ -53,6 +76,7 @@ function actualizarSelectPac() {
     const hora = document.getElementById('f-hora').value;
     const motivo = normalizarTexto(document.getElementById('f-motivo').value);
     const recurrente = document.getElementById('f-recurrente').value;
+    const modoEdicion = !!turnoEditId;
     
     if (!pv) {
       mostrarError('Seleccioná un paciente o creá uno nuevo para seguir.');
@@ -91,8 +115,8 @@ function actualizarSelectPac() {
         return;
       }
 
-      if (!validarDni(dni)) {
-        mostrarError('Ingresá un DNI válido de 7 u 8 dígitos.');
+      if (dni && !validarDni(dni)) {
+        mostrarError('Si ingresás un DNI, debe tener 7 u 8 dígitos.');
         marcarCampoInvalido('tn-dni');
         return;
       }
@@ -111,7 +135,6 @@ function actualizarSelectPac() {
         nombrePaciente = pacienteExistente.nombre;
       } else {
         try {
-          // El id lo asigna Supabase; recién lo sabemos después del insert.
           const nuevo = await AppState.agregarPaciente({
             nombre,
             dni,
@@ -145,7 +168,7 @@ function actualizarSelectPac() {
       }
     }
 
-    const turnoDuplicado = turnos.some(t => t.pacId === pid && t.fecha === fecha && t.hora === hora && t.estado === 'activo');
+    const turnoDuplicado = turnos.some(t => t.id !== turnoEditId && t.pacId === pid && t.fecha === fecha && t.hora === hora && t.estado === 'activo');
     if (turnoDuplicado) {
       mostrarError('Ya existe un turno activo para este paciente en esa fecha y hora.');
       return;
@@ -158,41 +181,58 @@ function actualizarSelectPac() {
     setBtnLoading('btn-guardar-turno');
 
     try {
-      await AppState.agregarTurno({
-        pacId: pid,
-        tel,
-        fecha,
-        hora,
-        motivo,
-        confirmado: false,
-        estado: 'activo',
-        recurrente: recurrente || null
-      });
-
-      if (recurrente) {
-        const d = parseDate(fecha);
-        const sig = new Date(d);
-
-        if (recurrente === '1m') sig.setMonth(sig.getMonth() + 1);
-        else if (recurrente === '3m') sig.setMonth(sig.getMonth() + 3);
-        else if (recurrente === '6m') sig.setMonth(sig.getMonth() + 6);
-        else if (recurrente === '1a') sig.setFullYear(sig.getFullYear() + 1);
-
+      if (modoEdicion) {
+        const turnoActual = turnos.find(t => t.id === turnoEditId);
+        if (!turnoActual) {
+          mostrarError('No se encontró el turno a actualizar.');
+          return;
+        }
+        turnoActual.pacId = pid;
+        turnoActual.tel = tel;
+        turnoActual.fecha = fecha;
+        turnoActual.hora = hora;
+        turnoActual.motivo = motivo;
+        turnoActual.recurrente = recurrente || null;
+        if (!await save()) return;
+        mostrarMensaje(`Turno actualizado para ${nombrePaciente}.`, 'success');
+      } else {
         await AppState.agregarTurno({
           pacId: pid,
           tel,
-          fecha: fechaStr(sig),
+          fecha,
           hora,
           motivo,
           confirmado: false,
           estado: 'activo',
-          recurrente,
-          esSugerido: true
+          recurrente: recurrente || null
         });
+
+        if (recurrente) {
+          const d = parseDate(fecha);
+          const sig = new Date(d);
+
+          if (recurrente === '1m') sig.setMonth(sig.getMonth() + 1);
+          else if (recurrente === '3m') sig.setMonth(sig.getMonth() + 3);
+          else if (recurrente === '6m') sig.setMonth(sig.getMonth() + 6);
+          else if (recurrente === '1a') sig.setFullYear(sig.getFullYear() + 1);
+
+          await AppState.agregarTurno({
+            pacId: pid,
+            tel,
+            fecha: fechaStr(sig),
+            hora,
+            motivo,
+            confirmado: false,
+            estado: 'activo',
+            recurrente,
+            esSugerido: true
+          });
+        }
+
+        mostrarMensaje(`Turno guardado para ${nombrePaciente}.`, 'success');
       }
 
-      AppState.refrescar();
-      mostrarMensaje(`Turno guardado para ${nombrePaciente}.`, 'success');
+      renderAll();
       cerrarModal('m-turno');
       resetTurnoForm();
     } catch (e) {

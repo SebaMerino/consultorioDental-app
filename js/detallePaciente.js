@@ -46,7 +46,7 @@ function renderDatosPaciente(p) {
       '<div class="sec" style="margin:0 0 10px">Datos personales</div>' +
       '<div class="detail-field-grid">' +
         '<div class="fg" style="margin:0"><label for="edit-nombre">Nombre</label><input id="edit-nombre" class="form-input" value="' + escapeHtml(p.nombre) + '" /></div>' +
-        '<div class="fg" style="margin:0"><label for="edit-dni">DNI *</label><input id="edit-dni" class="form-input" type="text" inputmode="numeric" maxlength="8" value="' + escapeHtml(p.dni || '') + '" /></div>' +
+        '<div class="fg" style="margin:0"><label for="edit-dni">DNI</label><input id="edit-dni" class="form-input" type="text" inputmode="numeric" maxlength="8" value="' + escapeHtml(p.dni || '') + '" /></div>' +
         '<div class="fg" style="margin:0"><label for="edit-tel">Teléfono</label><input id="edit-tel" class="form-input" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" value="' + escapeHtml(p.tel) + '" /></div>' +
         '<div class="fg" style="margin:0"><label for="edit-nac">Fecha de nacimiento</label><input id="edit-nac" class="form-input" type="date" min="1900-01-01" max="2026-09-07" value="' + escapeHtml(p.nac || '') + '" /></div>' +
         '<div class="fg" style="margin:0"><label for="edit-os">Obra social</label><input id="edit-os" class="form-input" value="' + escapeHtml(p.obraSocial || '') + '" /></div>' +
@@ -71,8 +71,8 @@ async function guardarDatosPaciente() {
     alert('Ingresá un nombre para el paciente');
     return;
   }
-  if (!validarDni(dni)) {
-    alert('Ingresá un DNI válido de 7 u 8 dígitos');
+  if (dni && !validarDni(dni)) {
+    alert('Si ingresás un DNI, debe tener 7 u 8 dígitos');
     return;
   }
   if (!validarTelefono(tel)) {

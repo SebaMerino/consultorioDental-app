@@ -31,7 +31,8 @@ function renderAlertas() {
       c2.map(t => {
         const pac = pacientes.find(p => p.id === t.pacId);
         const nombre = pac ? pac.nombre : 'Paciente';
-        const msg = encodeURIComponent('👋 ¡Hola, ' + (pac ? pac.nombre : 'Paciente') + '!\n💬 Te recordamos tu turno con ' + nombreProfesionalActual() + '\n📅 ' + parseDate(t.fecha).toLocaleDateString('es-AR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }).replace(', ', ' ') + '\n🕐 ' + t.hora + ' hs\n\n✅ Por favor respondé *SI* para confirmar tu turno o *NO* para cancelarlo.\n\n¡Gracias! 🙏');
+        const linkRecordatorio = linkWhatsAppTurno(t, 'recordatorio');
+        const linkConfirmar = linkWhatsAppTurno(t, 'confirmar');
         
         return '<div class="card">' +
           '<div class="card-row" style="margin-bottom:8px">' +
@@ -41,7 +42,8 @@ function renderAlertas() {
             '</div>' +
           '</div>' +
           '<div style="display:flex;gap:6px;flex-wrap:wrap">' +
-            '<a class="btn-wa btn-wa-orange" href="https://wa.me/' + t.tel + '?text=' + msg + '" target="_blank">' + waIcon + ' WhatsApp</a>' +
+            '<a class="btn-wa btn-wa-orange" href="' + linkRecordatorio + '" target="_blank">' + waIcon + ' Recordatorio</a>' +
+            '<a class="btn-wa" href="' + linkConfirmar + '" target="_blank">✅ Confirmar</a>' +
             '<button class="btn" style="font-size:12px;padding:6px 10px;background:var(--green-light);color:var(--green-dark);border-color:var(--green)" onclick="marcarConfirmado(' + t.id + ')">✓ Confirmó</button>' +
             '<button class="btn btn-red" style="font-size:12px;padding:6px 10px" onclick="marcarCancelado(' + t.id + ')">✕ Canceló</button>' +
           '</div>' +

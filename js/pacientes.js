@@ -48,8 +48,8 @@ function renderPacientes() {
       return;
     }
 
-    if (!validarDni(dni)) {
-      mostrarError('Ingresá un DNI válido de 7 u 8 dígitos.');
+    if (dni && !validarDni(dni)) {
+      mostrarError('Si ingresás un DNI, debe tener 7 u 8 dígitos.');
       marcarCampoInvalido('np-dni');
       return;
     }

@@ -197,7 +197,7 @@
       <div style="font-size:12px;color:var(--green-dark);font-weight:500">✨ Se creará un paciente nuevo con estos datos</div>
     </div>
     <div class="fg"><label>Nombre completo *</label><input id="tn-nombre" type="text" placeholder="Ej: María González"></div>
-    <div class="fg"><label>DNI *</label><input id="tn-dni" type="text" inputmode="numeric" maxlength="8" placeholder="Ej: 30123456"></div>
+    <div class="fg"><label>DNI</label><input id="tn-dni" type="text" inputmode="numeric" maxlength="8" placeholder="Ej: 30123456"></div>
     <div class="fg"><label>Teléfono WhatsApp *</label><input id="tn-tel" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="2615551234"></div>
     <div class="fg"><label>Fecha de nacimiento</label><input id="tn-nac" type="date" min="1900-01-01" max="2026-09-07"></div>
     <div class="fg"><label>Obra Social</label><input id="tn-os" type="text" placeholder="Ej: OSDE, PAMI, Particular..."></div>
@@ -224,12 +224,12 @@
   <div class="modal-scroll">
   <div class="modal-title">Nuevo paciente</div>
   <div class="fg"><label>Nombre completo *</label><input id="np-nombre" type="text" placeholder="Ej: María González"></div>
-  <div class="fg"><label>DNI *</label><input id="np-dni" type="text" inputmode="numeric" maxlength="8" placeholder="Ej: 30123456"></div>
+  <div class="fg"><label>DNI</label><input id="np-dni" type="text" inputmode="numeric" maxlength="8" placeholder="Ej: 30123456"></div>
   <div class="fg"><label>Teléfono WhatsApp *</label><input id="np-tel" type="tel" inputmode="numeric" maxlength="10" pattern="[0-9]{10}" placeholder="2615551234"></div>
   <div class="fg"><label>Fecha de nacimiento</label><input id="np-nac" type="date" min="1900-01-01" max="2026-09-07"></div>
   <div class="fg"><label>Obra Social</label><input id="np-os" type="text" placeholder="Ej: OSDE, PAMI, Particular..."></div>
   <div class="fg"><label>Observaciones (alergias, medicación...)</label><textarea id="np-obs" placeholder="Ej: Alergia a penicilina..."></textarea></div>
-  <div class="form-hint">El DNI debe tener entre 7 y 8 dígitos.</div>
+  <div class="form-hint">El DNI es opcional. Si lo cargás, debe tener entre 7 y 8 dígitos.</div>
   <button class="btn btn-green btn-full" id="btn-guardar-paciente" onclick="guardarPaciente()">Guardar paciente</button>
   <button class="btn btn-full" style="background:var(--bg)" onclick="cerrarModal('m-paciente')">Cancelar</button>
   </div>
